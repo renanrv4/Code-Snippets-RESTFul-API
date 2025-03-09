@@ -31,32 +31,21 @@ public class SnippetService {
     @Transactional
     public Snippet create(Snippet snippetToCreate) {
         validateSnippet(snippetToCreate);
-
+        if (snippetToCreate.getUser() == null || snippetToCreate.getUser().getId() == null) {
+            throw new BusinessException("O snippet deve ter um usuário associado.");
+        }
         return snippetRepository.save(snippetToCreate);
     }
 
     @Transactional
     public Snippet update(Long id, Snippet snippetToUpdate) {
         Snippet dbSnippet = findById(id);
-
-        if (!dbSnippet.getId().equals(snippetToUpdate.getId())) {
-            throw new BusinessException("O ID deve ser o mesmo");
-        }
-
-        validateSnippet(snippetToUpdate);
-
         dbSnippet.setTitle(snippetToUpdate.getTitle());
         dbSnippet.setCode(snippetToUpdate.getCode());
         dbSnippet.setLanguage(snippetToUpdate.getLanguage());
         dbSnippet.setUpdatedAt(snippetToUpdate.getUpdatedAt());
 
         return snippetRepository.save(dbSnippet);
-    }
-
-    @Transactional
-    public void delete(Long id) {
-        Snippet dbSnippet = findById(id);
-        snippetRepository.delete(dbSnippet);
     }
 
     private void validateSnippet(Snippet snippet) {

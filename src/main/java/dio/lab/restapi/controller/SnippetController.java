@@ -3,6 +3,7 @@ package dio.lab.restapi.controller;
 import dio.lab.restapi.domain.model.Snippet;
 import dio.lab.restapi.domain.model.User;
 import dio.lab.restapi.domain.repository.UserRepository;
+import dio.lab.restapi.exception.NotFoundException;
 import dio.lab.restapi.service.SnippetService;
 import dio.lab.restapi.exception.BusinessException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
 @RequestMapping(path = "/snippets")
 public class SnippetController {
@@ -44,18 +44,23 @@ public class SnippetController {
     @Operation(summary = "Create a new snippet")
     public ResponseEntity<Snippet> createSnippet(@RequestBody Snippet snippet) {
         try {
+            if (snippet.getUser() == null || snippet.getUser().getId() == null) {
+                return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            }
+
             User user = userRepository.findById(snippet.getUser().getId())
-                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                    .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
 
             snippet.setUser(user);
             Snippet createdSnippet = snippetService.create(snippet);
 
             return new ResponseEntity<>(createdSnippet, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
+        } catch (NotFoundException e) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        } catch (BusinessException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }
-
 
     @PutMapping("/{id}")
     @Operation(summary = "Update a snippet", description = "Update the data of an existing snippet based on its ID")
@@ -65,16 +70,6 @@ public class SnippetController {
             return new ResponseEntity<>(updatedSnippet, HttpStatus.OK);
         } catch (BusinessException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
-    }
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Delete a snippet", description = "Delete an existing snippet based on its ID")
-    public ResponseEntity<Void> deleteSnippet(@PathVariable Long id) {
-        try {
-            snippetService.delete(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (BusinessException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 }

@@ -1,6 +1,8 @@
 package dio.lab.restapi.service;
 
+import dio.lab.restapi.domain.model.Snippet;
 import dio.lab.restapi.domain.model.User;
+import dio.lab.restapi.domain.repository.SnippetRepository;
 import dio.lab.restapi.domain.repository.UserRepository;
 import dio.lab.restapi.exception.BusinessException;
 import dio.lab.restapi.exception.NotFoundException;
@@ -16,13 +18,30 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SnippetRepository snippetRepository;
 
     private static final Long UNCHANGEABLE_USER_ID = 1L;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, SnippetRepository snippetRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.snippetRepository = snippetRepository;
+    }
+
+    public User createUserWithSnippets(User user, List<Snippet> snippets) {
+        for (Snippet snippet : snippets) {
+            snippet.setUser(user);
+        }
+
+        user.setSnippets(snippets);
+        userRepository.save(user);
+
+        for (Snippet snippet : snippets) {
+            snippetRepository.save(snippet);
+        }
+
+        return user;
     }
 
     @Transactional(readOnly = true)
@@ -59,8 +78,6 @@ public class UserService {
 
     @Transactional
     public User update(Long id, User userToUpdate) {
-        System.out.println("Attempting to update user with id: " + id);
-
         if (!id.equals(userToUpdate.getId())) {
             throw new BusinessException("O ID da URL deve ser o mesmo que o ID no corpo da requisição");
         }
@@ -82,7 +99,6 @@ public class UserService {
 
     @Transactional
     public void delete(Long id) {
-        System.out.println("Attempting to delete user with id: " + id); // Log para depuração
         validateChangeableId(id, "deleted");
 
         User dbUser = findById(id);
