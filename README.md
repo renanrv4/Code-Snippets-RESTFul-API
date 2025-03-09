@@ -38,3 +38,7 @@ classDiagram
 
     User "1" -- "0..*" Snippet : possui
 ```
+
+## Link para o deploy da aplicação
+
+[Railway app](https://code-snippets.up.railway.app/swagger-ui/index.html)
