@@ -32,7 +32,8 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public User findById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
     }
 
     @Transactional
@@ -56,15 +57,17 @@ public class UserService {
         return userRepository.save(userToCreate);
     }
 
-
     @Transactional
     public User update(Long id, User userToUpdate) {
-        validateChangeableId(id, "updated");
-        User dbUser = findById(id);
+        System.out.println("Attempting to update user with id: " + id);
 
-        if (!dbUser.getId().equals(userToUpdate.getId())) {
-            throw new BusinessException("O ID deve ser o mesmo");
+        if (!id.equals(userToUpdate.getId())) {
+            throw new BusinessException("O ID da URL deve ser o mesmo que o ID no corpo da requisição");
         }
+
+        validateChangeableId(id, "updated");
+
+        User dbUser = findById(id);
 
         dbUser.setUsername(userToUpdate.getUsername());
         dbUser.setEmail(userToUpdate.getEmail());
@@ -76,16 +79,19 @@ public class UserService {
         return userRepository.save(dbUser);
     }
 
+
     @Transactional
     public void delete(Long id) {
+        System.out.println("Attempting to delete user with id: " + id); // Log para depuração
         validateChangeableId(id, "deleted");
+
         User dbUser = findById(id);
         userRepository.delete(dbUser);
     }
 
     private void validateChangeableId(Long id, String operation) {
         if (UNCHANGEABLE_USER_ID.equals(id)) {
-            throw new BusinessException("Usuário com o ID %d não pode ser %s.".formatted(UNCHANGEABLE_USER_ID, operation));
+            throw new BusinessException("The User with ID %d cannot be %s.".formatted(UNCHANGEABLE_USER_ID, operation));
         }
     }
 
@@ -96,5 +102,4 @@ public class UserService {
 
         return passwordEncoder.matches(plainPassword, user.getPassword());
     }
-
 }

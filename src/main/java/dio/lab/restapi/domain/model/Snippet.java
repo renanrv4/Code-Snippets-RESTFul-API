@@ -33,18 +33,18 @@ public class Snippet {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User userId;
+    private User user;
 
     public Snippet() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Snippet(String title, String code, String language, User userId) {
+    public Snippet(String title, String code, String language, User user) {
         this.title = title;
         this.code = code;
         this.language = language;
-        this.userId = userId;
+        this.user = user;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
@@ -52,7 +52,8 @@ public class Snippet {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public User getUserId() { return userId; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
